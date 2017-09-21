@@ -915,6 +915,8 @@ before point."
                                 end 'noerror)
     (goto-char (match-beginning 0))
     (let ((sym (match-string 1))
+          (beg (match-beginning 0))
+          whole-sym
           (sexp-end (save-excursion
                       (or (ignore-errors (forward-sexp 1)
                                          (point))
@@ -926,10 +928,14 @@ before point."
           (add-text-properties (point) sexp-end '(cider-block-dynamic-font-lock t))
         (forward-char 1)
         (forward-sexp 1)
+        (setq whole-sym (buffer-substring-no-properties (1+ beg) (point)))
         (let ((locals (append outer-locals
-                              (pcase sym
-                                ((or "fn" "def" "") (cider--read-locals-from-arglist))
-                                (_ (cider--read-locals-from-bindings-vector))))))
+                              (if (or (string= whole-sym "def")
+                                      (string= whole-sym "defconst"))
+                                  '()
+                                (pcase sym
+                                  ((or "fn" "def" "") (cider--read-locals-from-arglist))
+                                  (_ (cider--read-locals-from-bindings-vector)))))))
           (add-text-properties (point) sexp-end (list 'cider-locals locals))
           (clojure-forward-logical-sexp 1)
           (cider--parse-and-apply-locals sexp-end locals)))
