@@ -410,8 +410,10 @@ Tables are marked to be ignored by line wrap."
                     (split-string str "\n")))
          (args    (when-let* ((str (nrepl-dict-get info "arglists-str")))
                     (split-string str "\n")))
-         (doc     (or (nrepl-dict-get info "doc")
-                      "Not documented."))
+         (doc     (replace-regexp-in-string
+                   "^ *" "  "
+                   (or (nrepl-dict-get info "doc")
+                       "Not documented.")))
          (url     (nrepl-dict-get info "url"))
          (class   (nrepl-dict-get info "class"))
          (member  (nrepl-dict-get info "member"))
@@ -452,7 +454,7 @@ Tables are marked to be ignored by line wrap."
           (emit (concat "Deprecated in " depr) 'font-lock-keyword-face))
         (if class
             (cider-docview-render-java-doc (current-buffer) doc)
-          (emit (concat "  " doc)))
+          (emit doc))
         (when url
           (insert "\n  Please see ")
           (insert-text-button url
